@@ -1,0 +1,2 @@
+rootProject.name = 'oop-sem3-mini-project'
+include 'app'
