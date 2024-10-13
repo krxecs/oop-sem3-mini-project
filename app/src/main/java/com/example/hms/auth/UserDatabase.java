@@ -21,22 +21,28 @@ public final class UserDatabase {
 
   private final UserDB userDB;
 
-  public UserDatabase(String fileName) throws IOException {
+  public UserDatabase(String fileName) /*throws IOException*/ {
     UserDB udb;
     file = new File(fileName);
     try (Reader br = new BufferedReader(new FileReader(file))) {
       udb = gson.fromJson(br, UserDB.class);
     } catch (FileNotFoundException e) {
       udb = new UserDB(new HashMap<>());
-      file.createNewFile();
+      try {
+        file.createNewFile();
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("Error reading file", e);
     }
-    System.out.println(udb);
     userDB = udb;
   }
 
   public void addUser(String username, char[] password) {
     addUser(UuidCreator.getTimeOrderedEpochPlusN(), username, password);
   }
+
   public void addUser(UUID userId, String username, char[] password) {
     PasswordHash ph = new PasswordHash();
     PHCHash h = ph.generateHash(password, PasswordHash.generateSalt());
@@ -44,7 +50,7 @@ public final class UserDatabase {
     boolean found = false;
     for (UUID k : userDB.getUserDbInMem().keySet()) {
       UserAttributes ua = userDB.getUserDbInMem().get(k);
-      if (ua.toString().equals(username)) {
+      if (ua.getAttributes().get("username").equals(username)) {
         found = true;
         break;
       }
