@@ -15,14 +15,15 @@ public class UserDAOImpl extends BaseDaoImpl<User, UUID> implements UserDAO {
   }
 
   @Override
-  public void addUser(String username, char[] password, String email, String firstName, String middleName, String lastName) throws Exception {
+  public User addUser(String username, char[] password, String email, String firstName, String middleName, String lastName, java.sql.Date dateOfBirth, String phoneNumber) throws Exception {
     User user = getUser(username);
     if (user != null) {
       throw new Exception("User already exists");
     }
     PHCHash passwordHash = new PasswordHash().generateHash(password, PasswordHash.generateSalt());
-    User newUser = new User(UuidCreator.getTimeOrderedEpochPlusN(), username, passwordHash, email, firstName, middleName, lastName);
+    User newUser = new User(UuidCreator.getTimeOrderedEpochPlusN(), username, passwordHash, email, firstName, middleName, lastName, dateOfBirth, phoneNumber);
     create(newUser);
+    return newUser;
   }
 
   @Override

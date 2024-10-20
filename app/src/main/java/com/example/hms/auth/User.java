@@ -16,27 +16,33 @@ public class User {
   @DatabaseField(columnName = "user_id", id = true)
   private UUID userId;
 
-  @DatabaseField(columnName = "username", unique = true)
+  @DatabaseField(columnName = "username", unique = true, canBeNull = false)
   private String username;
 
-  @DatabaseField(columnName = "password_hash", dataType = DataType.BYTE_ARRAY)
+  @DatabaseField(columnName = "password_hash", dataType = DataType.BYTE_ARRAY, canBeNull = false)
   private byte[] passwordHash;
 
-  @DatabaseField(columnName = "first_name")
+  @DatabaseField(columnName = "first_name", canBeNull = false)
   private String firstName;
 
   @DatabaseField(columnName = "middle_name")
   private String middleName;
 
-  @DatabaseField(columnName = "last_name")
+  @DatabaseField(columnName = "last_name", canBeNull = false)
   private String lastName;
 
-  @DatabaseField(columnName = "email")
+  @DatabaseField(columnName = "email", unique = true, canBeNull = false)
   private String email;
+
+  @DatabaseField(columnName = "dob", canBeNull = false)
+  private java.sql.Date dateOfBirth;
+
+  @DatabaseField(columnName = "phone_no", canBeNull = false)
+  private String phoneNumber;
 
   public User() { }
 
-  public User(UUID userId, String username, PHCHash passwordHash, String email, String firstName, String middleName, String lastName) {
+  public User(UUID userId, String username, PHCHash passwordHash, String email, String firstName, String middleName, String lastName, java.sql.Date dateOfBirth, String phoneNumber) {
     this.userId = userId;
     this.username = username;
     this.passwordHash = passwordHash.getFormattedHash();
@@ -44,6 +50,8 @@ public class User {
     this.firstName = firstName;
     this.middleName = middleName;
     this.lastName = lastName;
+    this.dateOfBirth = dateOfBirth;
+    this.phoneNumber = phoneNumber;
   }
 
   public UUID getUserId() { return userId; }
@@ -59,4 +67,8 @@ public class User {
   public String getMiddleName() { return middleName; }
 
   public String getLastName() { return lastName; }
+
+  public java.sql.Date getDateOfBirth() { return dateOfBirth; }
+
+  public String getPhoneNumber() { return phoneNumber; }
 }
