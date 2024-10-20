@@ -2,6 +2,7 @@ plugins {
   id 'application'
 
   id 'org.openjfx.javafxplugin' version '0.1.0'
+  id 'org.gradlex.extra-java-module-info' version '1.9'
 }
 
 repositories {
@@ -15,6 +16,51 @@ dependencies {
   implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
 
   implementation 'com.github.f4b6a3:uuid-creator:6.0.0'
+
+  //implementation 'com.j256.ormlite:ormlite-core:6.1'
+  implementation 'com.j256.ormlite:ormlite-jdbc:6.1'
+
+  implementation 'com.h2database:h2:2.3.232'
+  implementation 'org.xerial:sqlite-jdbc:3.46.1.3'
+  implementation 'org.slf4j:slf4j-api:1.7.36'
+}
+
+extraJavaModuleInfo {
+  deriveAutomaticModuleNamesFromFileNames.set(true)
+  //module('com.j256.ormlite:ormlite-core', 'ormlite.core') {
+  //  requires 'java.sql';
+  //  exports 'com.j256.ormlite.field'
+  //  exports 'com.j256.ormlite.logger'
+  //  exports 'com.j256.ormlite.misc'
+  //  exports 'com.j256.ormlite.stmt'
+  //  exports 'com.j256.ormlite.support'
+  //  exports 'com.j256.ormlite.table'
+  //  exports 'com.j256.ormlite.dao'
+  //  exports 'com.j256.ormlite.db'
+  //}
+  module('com.j256.ormlite:ormlite-jdbc', 'ormlite.jdbc') {
+    //requires 'ormlite.core'
+    requires 'java.sql';
+    exports 'com.j256.ormlite.jdbc'
+    exports 'com.j256.ormlite.jdbc.db'
+    exports 'com.j256.ormlite.field'
+    exports 'com.j256.ormlite.logger'
+    exports 'com.j256.ormlite.misc'
+    exports 'com.j256.ormlite.stmt'
+    exports 'com.j256.ormlite.support'
+    exports 'com.j256.ormlite.table'
+    exports 'com.j256.ormlite.dao'
+    exports 'com.j256.ormlite.db'
+    //exports 'com.j256.ormlite.jdbc.db.h2'
+    //exports 'com.j256.ormlite.jdbc.db.mysql'
+    //exports 'com.j256.ormlite.jdbc.db.oracle'
+    //exports 'com.j256.ormlite.jdbc.db.postgres'
+    //exports 'com.j256.ormlite.jdbc.db.sqlite'
+    //exports 'com.j256.ormlite.jdbc.db.db2'
+    //exports 'com.j256.ormlite.jdbc.db.derby'
+    //exports 'com.j256.ormlite.jdbc.db.mssql'
+    //exports 'com.j256.ormlite.jdbc.db.oci'
+  }
 }
 
 application {

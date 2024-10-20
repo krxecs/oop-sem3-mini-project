@@ -1,13 +1,21 @@
 package com.example.hms;
 
-import com.example.hms.auth.UserAttributes;
-import com.example.hms.auth.UserDatabase;
+import com.example.hms.auth.User;
+import com.example.hms.auth.UserDAO;
+import com.example.hms.auth.UserDAOImpl;
 import com.example.hms.util.crypto.PHCHash;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.sql.SQLException;
 
+import com.j256.ormlite.dao.CloseableIterable;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.table.TableUtils;
 import javafx.application.Application;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -15,6 +23,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -22,59 +31,8 @@ import javafx.stage.Stage;
 public final class HMSApp extends Application {
   Stage primaryStage;
   Scene primaryScene;
-  UserDatabase ub = new UserDatabase("users.json");
 
-  // Original main method
-  public static void main_orig(String[] args) throws IOException {
-    Scanner sc = new Scanner(System.in);
-    UserDatabase ub = new UserDatabase("users.json");
-
-    int choice;
-    do {
-      System.out.print("Choice:\n\t1. Add user\n\t2. Delete user\n\t3. List users\n\t4. Exit\n\nEnter choice: ");
-      choice = sc.nextInt();
-      sc.nextLine();
-      switch (choice) {
-        case 1:
-          System.out.println("Enter a username:");
-          String username = sc.nextLine();
-          System.out.println("Enter a password:");
-          char[] pwd = sc.nextLine().toCharArray();
-          ub.addUser(username, pwd);
-          break;
-        case 2:
-          System.out.println("Enter a username:");
-          String delUser = sc.nextLine();
-          ub.removeUser(delUser);
-          break;
-        case 3:
-          HashMap<UUID, UserAttributes> users = ub.listUsers();
-          for (UUID k : users.keySet()) {
-            HashMap<String, Object> ua = users.get(k).getAttributes();
-            System.out.print("\t" + k + "\t" + ua.get("username"));
-            for (String k1 : ua.keySet().stream().filter(k1 -> !k1.equals("username")).toList()) {
-              if (ua.get(k1) instanceof PHCHash)
-                System.out.print("\t" + new String(((PHCHash) ua.get(k1)).getFormattedHash()));
-              else
-                System.out.print("\t" + ua.get(k1).toString());
-            }
-            System.out.println();
-          }
-          break;
-        case 4:
-          System.out.println("Exiting...");
-          break;
-        default:
-          System.out.println("Invalid choice");
-      }
-      System.out.println();
-    } while (choice != 4);
-
-    ub.flush();
-    sc.close();
-  }
-
-  Scene registrationForm(UserDatabase ub) {
+  Scene registrationForm(UserDAO userDao) {
     VBox root = new VBox(10);
     root.setAlignment(Pos.CENTER);
 
@@ -92,31 +50,45 @@ public final class HMSApp extends Application {
     gp.add(passwordLabel, 0, 1);
     gp.add(passwordField, 1, 1);
 
+    Label emailLabel = new Label("Email: ");
+    TextField emailField = new TextField();
+    gp.add(emailLabel, 0, 2);
+    gp.add(emailField, 1, 2);
+
+    Label firstNameLabel = new Label("First Name: ");
+    TextField firstNameField = new TextField();
+    gp.add(firstNameLabel, 0, 3);
+    gp.add(firstNameField, 1, 3);
+
+    Label middleNameLabel = new Label("Middle Name: ");
+    TextField middleNameField = new TextField();
+    gp.add(middleNameLabel, 0, 4);
+    gp.add(middleNameField, 1, 4);
+
+    Label lastNameLabel = new Label("Last Name: ");
+    TextField lastNameField = new TextField();
+    gp.add(lastNameLabel, 0, 5);
+    gp.add(lastNameField, 1, 5);
+
     Button btnRegister = new Button("Register");
 
     Label lblStatus = new Label();
 
     btnRegister.setOnAction(e -> {
-      String username = usernameField.getText();
-      char[] password = passwordField.getText().toCharArray();
-      boolean success = false;
       try {
-        ub.addUser(username, password);
+        userDao.addUser(
+          usernameField.getText(),
+          passwordField.getText().toCharArray(),
+          emailField.getText(),
+          firstNameField.getText(),
+          middleNameField.getText(),
+          lastNameField.getText()
+        );
         lblStatus.setText("User registered successfully");
-        success = true;
       } catch (Exception ex) {
         lblStatus.setText("Error registering user");
         System.err.println("Error registering user:\n" + ex);
         ex.printStackTrace(System.err);
-      }
-      if (success) {
-        try {
-          ub.flush();
-        } catch (IOException ex) {
-          lblStatus.setText("Error saving user data");
-          System.err.println("Error saving user data:\n" + ex);
-          ex.printStackTrace(System.err);
-        }
       }
     });
 
@@ -127,7 +99,7 @@ public final class HMSApp extends Application {
     return new Scene(root, 300, 200);
   }
 
-  Scene loginForm(UserDatabase ub) {
+  Scene loginForm(UserDAO userDao) {
     VBox root = new VBox(10);
     root.setAlignment(Pos.CENTER);
 
@@ -157,12 +129,12 @@ public final class HMSApp extends Application {
     btnLogin.setOnAction(e -> {
       String username = usernameField.getText();
       char[] password = passwordField.getText().toCharArray();
-      UUID userId = ub.login(username, password);
-      System.out.println(userId);
-      if (userId == null)
-        lblStatus.setText("Invalid username or password");
-      else
+      try {
+        User user = userDao.login(username, password);
         lblStatus.setText("Authenticated user successfully");
+      } catch (Exception ex) {
+        lblStatus.setText("Invalid username or password");
+      }
     });
 
     root.getChildren().addAll(gp, btnLogin, btnGotToRegistration, lblStatus);
@@ -171,70 +143,94 @@ public final class HMSApp extends Application {
 
   void goToMainWindow() { primaryStage.setScene(this.primaryScene); }
 
-  Scene userList(UserDatabase ub) {
+  Scene userList(UserDAO userDao) {
     VBox root = new VBox(10);
     root.setAlignment(Pos.CENTER);
 
     TableView<HashMap<String, String>> table = new TableView<>();
     table.setEditable(false);
 
-    HashMap<UUID, UserAttributes> users = ub.listUsers();
-    List<String> colNames = users.values().stream()
-            .flatMap(ua -> ua.getAttributes().keySet().stream())
-            .distinct()
-            .toList();
-
-    TableColumn<HashMap<String, String>, String> userIdCol = new TableColumn<>("userId");
-    userIdCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().get("userId")));
-    table.getColumns().add(userIdCol);
-    for (String colName : colNames) {
-        TableColumn<HashMap<String, String>, String> col = new TableColumn<>(colName);
-        col.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().get(colName)));
-        table.getColumns().add(col);
+    List<User> users = new LinkedList<>();
+    boolean success = false;
+    try {
+      users = userDao.queryForAll();
+      success = true;
+    } catch (Exception ex) {
+      System.err.println("Error listing users:\n" + ex);
+      ex.printStackTrace(System.err);
     }
 
-    ObservableList<HashMap<String, String>> data = FXCollections.observableArrayList();
-    for (UUID userId : users.keySet()) {
-        HashMap<String, Object> attributes = users.get(userId).getAttributes();
+    if (success) {
+      ObservableList<HashMap<String, String>> data = FXCollections.observableArrayList();
+      for (User user : users) {
         HashMap<String, String> row = new HashMap<>();
-        row.put("userId", userId.toString());
-        for (String colName : colNames) {
-            Object value = attributes.get(colName);
-            row.put(colName, value != null ? value.toString() : "");
-        }
+        row.put("user_id", user.getUserId().toString());
+        row.put("username", user.getUsername());
+        row.put("email", user.getEmail());
+        row.put("first_name", user.getFirstName());
+        row.put("middle_name", user.getMiddleName());
+        row.put("last_name", user.getLastName());
+        row.put("password_hash", user.getPasswordHash().toString());
         data.add(row);
+      }
+
+      for (Field colName : userDao.getTableInfo().getDataClass().getDeclaredFields()) {
+        //if (!colName.isAnnotationPresent(DatabaseField.class))
+        //  continue;
+      //for (String colName : data.getFirst().keySet()) {
+        System.out.println(colName.getName());
+        TableColumn<HashMap<String, String>, String> col = new TableColumn<>(colName.getName());
+        col.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get(colName.getName())));
+        table.getColumns().add(col);
+      }
+
+      table.setItems(data);
     }
 
-    table.setItems(data);
+    Button btnGoToMainWindow = new Button("Go to main window");
+    btnGoToMainWindow.setOnAction(e -> goToMainWindow());
 
     Scene scene = new Scene(root, 300, 200);
-    root.getChildren().add(table);
+    root.getChildren().addAll(table, btnGoToMainWindow);
     return scene;
   }
   // GUI Main method
   public void start(Stage primaryStage) {
     this.primaryStage = primaryStage;
     primaryStage.setTitle("HMS");
-
-    Scene sceneLoginForm = loginForm(ub);
-    Scene sceneRegistrationForm = registrationForm(ub);
-    Scene sceneUserList = userList(ub);
+    Scene sceneLoginForm, sceneRegistrationForm;
 
     VBox root = new VBox(10);
     root.setAlignment(Pos.CENTER);
 
-    Button btnLogin = new Button("Login");
-    btnLogin.setOnAction(e -> primaryStage.setScene(sceneLoginForm));
+    try(JdbcConnectionSource connectionSource = new JdbcConnectionSource("jdbc:sqlite:db.sqlite3", "sa", "")) {
+      UserDAO userDao = DaoManager.createDao(connectionSource, User.class);
+      TableUtils.createTableIfNotExists(connectionSource, User.class);
+      TableUtils.createTableIfNotExists(connectionSource, Patient.class);
 
-    Button btnRegister = new Button("Register");
-    btnRegister.setOnAction(e -> primaryStage.setScene(sceneRegistrationForm));
+      sceneLoginForm = loginForm(userDao);
+      sceneRegistrationForm = registrationForm(userDao);
 
-    Button btnListUsers = new Button("List users");
-    btnListUsers.setOnAction(e -> primaryStage.setScene(sceneUserList));
+      Button btnLogin = new Button("Login");
+      btnLogin.setOnAction(e -> primaryStage.setScene(sceneLoginForm));
 
-    root.getChildren().addAll(btnLogin, btnRegister, btnListUsers);
-    this.primaryScene = new Scene(root, 300, 200);
-    primaryStage.setScene(this.primaryScene);
-    primaryStage.show();
+      Button btnRegister = new Button("Register");
+      btnRegister.setOnAction(e -> primaryStage.setScene(sceneRegistrationForm));
+
+      Button btnListUsers = new Button("List users");
+      btnListUsers.setOnAction(e -> {
+        primaryStage.setScene(userList(userDao));
+      });
+
+      root.getChildren().addAll(btnLogin, btnRegister, btnListUsers);
+
+      this.primaryScene = new Scene(root, 300, 200);
+      primaryStage.setScene(this.primaryScene);
+      primaryStage.show();
+    } catch (Exception ex) {
+      System.err.println("Error creating connection source:\n" + ex);
+      ex.printStackTrace(System.err);
+      System.exit(1);
+    }
   }
 }

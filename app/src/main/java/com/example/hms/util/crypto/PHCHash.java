@@ -1,7 +1,5 @@
 package com.example.hms.util.crypto;
 
-import com.google.gson.*;
-
 import static org.bouncycastle.util.Arrays.constantTimeAreEqual;
 
 import java.io.ByteArrayInputStream;
@@ -169,17 +167,5 @@ public final class PHCHash {
         hobj.params.equals(this.params) &&
         constantTimeAreEqual(hobj.salt, this.salt) &&
         constantTimeAreEqual(hobj.hash, this.hash);
-  }
-
-  public static class Adapter implements JsonSerializer<PHCHash>, JsonDeserializer<PHCHash> {
-    @Override
-    public JsonElement serialize(PHCHash src, Type typeOfSrc, JsonSerializationContext context) {
-      return new JsonPrimitive(new String(src.getFormattedHash()));
-    }
-
-    @Override
-    public PHCHash deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
-      return PHCHash.fromHashedByteArray(json.getAsString().getBytes());
-    }
   }
 }
