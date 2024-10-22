@@ -327,7 +327,7 @@ gradle-app.setting
 # End of https://www.toptal.com/developers/gitignore/api/java,jetbrains+all,archive,archives,vim,emacs,visualstudiocode,sublimetext,gradle
 
 ## Custom
-users.json
-app/users.json
+db.sqlite3
+app/db.sqlite3
 build/*
 app/build/*
