@@ -2,6 +2,10 @@ package com.example.hms.auth.admin;
 
 import com.example.hms.HMSApp;
 import com.example.hms.util.auth.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,11 +17,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
 
 public class UserModification {
   private UserDAO userDao;
@@ -34,7 +33,9 @@ public class UserModification {
     alert.showAndWait();
   }
 
-  public UserModification(UserDAO userDao, PatientDAO patientDao, DoctorDAO doctorDao, AdministratorDAO adminDao, Stage primaryStage) {
+  public UserModification(UserDAO userDao, PatientDAO patientDao,
+                          DoctorDAO doctorDao, AdministratorDAO adminDao,
+                          Stage primaryStage) {
     this.userDao = userDao;
     this.patientDao = patientDao;
     this.doctorDao = doctorDao;
@@ -49,7 +50,7 @@ public class UserModification {
     TableView<HashMap<String, String>> table = new TableView<>();
     table.setEditable(true);
 
-    final List<User>[] users = new List[]{new LinkedList<>()};
+    final List<User>[] users = new List[] {new LinkedList<>()};
     boolean success = false;
     try {
       users[0] = userDao.queryForAll();
@@ -60,7 +61,8 @@ public class UserModification {
     }
 
     if (success) {
-      ObservableList<HashMap<String, String>> data = FXCollections.observableArrayList();
+      ObservableList<HashMap<String, String>> data =
+          FXCollections.observableArrayList();
       for (User user : users[0]) {
         HashMap<String, String> row = new HashMap<>();
         row.put("user_id", user.getUserId().toString());
@@ -75,46 +77,71 @@ public class UserModification {
         data.add(row);
       }
 
-      TableColumn<HashMap<String, String>, String> userIdCol = new TableColumn<>("User ID");
-      userIdCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("user_id")));
+      TableColumn<HashMap<String, String>, String> userIdCol =
+          new TableColumn<>("User ID");
+      userIdCol.setCellValueFactory(
+          param -> new SimpleStringProperty(param.getValue().get("user_id")));
       table.getColumns().add(userIdCol);
 
-      TableColumn<HashMap<String, String>, String> usernameCol = new TableColumn<>("Username");
-      usernameCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("username")));
+      TableColumn<HashMap<String, String>, String> usernameCol =
+          new TableColumn<>("Username");
+      usernameCol.setCellValueFactory(
+          param -> new SimpleStringProperty(param.getValue().get("username")));
       table.getColumns().add(usernameCol);
 
-      TableColumn<HashMap<String, String>, String> emailCol = new TableColumn<>("Email");
-      emailCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("email")));
+      TableColumn<HashMap<String, String>, String> emailCol =
+          new TableColumn<>("Email");
+      emailCol.setCellValueFactory(
+          param -> new SimpleStringProperty(param.getValue().get("email")));
       table.getColumns().add(emailCol);
 
-      TableColumn<HashMap<String, String>, String> firstNameCol = new TableColumn<>("First Name");
-      firstNameCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("first_name")));
+      TableColumn<HashMap<String, String>, String> firstNameCol =
+          new TableColumn<>("First Name");
+      firstNameCol.setCellValueFactory(
+          param
+          -> new SimpleStringProperty(param.getValue().get("first_name")));
       table.getColumns().add(firstNameCol);
 
-      TableColumn<HashMap<String, String>, String> middleNameCol = new TableColumn<>("Middle Name");
-      middleNameCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("middle_name")));
+      TableColumn<HashMap<String, String>, String> middleNameCol =
+          new TableColumn<>("Middle Name");
+      middleNameCol.setCellValueFactory(
+          param
+          -> new SimpleStringProperty(param.getValue().get("middle_name")));
       table.getColumns().add(middleNameCol);
 
-      TableColumn<HashMap<String, String>, String> lastNameCol = new TableColumn<>("Last Name");
-      lastNameCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("last_name")));
+      TableColumn<HashMap<String, String>, String> lastNameCol =
+          new TableColumn<>("Last Name");
+      lastNameCol.setCellValueFactory(
+          param -> new SimpleStringProperty(param.getValue().get("last_name")));
       table.getColumns().add(lastNameCol);
 
-      TableColumn<HashMap<String, String>, String> passwordHashCol = new TableColumn<>("Password Hash");
-      passwordHashCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("password_hash")));
+      TableColumn<HashMap<String, String>, String> passwordHashCol =
+          new TableColumn<>("Password Hash");
+      passwordHashCol.setCellValueFactory(
+          param
+          -> new SimpleStringProperty(param.getValue().get("password_hash")));
       table.getColumns().add(passwordHashCol);
 
-      TableColumn<HashMap<String, String>, String> dateOfBirthCol = new TableColumn<>("Date of Birth");
-      dateOfBirthCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("date_of_birth")));
+      TableColumn<HashMap<String, String>, String> dateOfBirthCol =
+          new TableColumn<>("Date of Birth");
+      dateOfBirthCol.setCellValueFactory(
+          param
+          -> new SimpleStringProperty(param.getValue().get("date_of_birth")));
       table.getColumns().add(dateOfBirthCol);
 
-      TableColumn<HashMap<String, String>, String> phoneNumberCol = new TableColumn<>("Phone Number");
-      phoneNumberCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("phone_number")));
+      TableColumn<HashMap<String, String>, String> phoneNumberCol =
+          new TableColumn<>("Phone Number");
+      phoneNumberCol.setCellValueFactory(
+          param
+          -> new SimpleStringProperty(param.getValue().get("phone_number")));
       table.getColumns().add(phoneNumberCol);
 
-      TableColumn<HashMap<String, String>, String> adminCol = new TableColumn<>("Admin");
+      TableColumn<HashMap<String, String>, String> adminCol =
+          new TableColumn<>("Admin");
       adminCol.setCellValueFactory(param -> {
         try {
-          if (adminDao.getAdministratorObjectForUser(userDao.queryForId(UUID.fromString(param.getValue().get("user_id")))) != null) {
+          if (adminDao.getAdministratorObjectForUser(userDao.queryForId(
+                  UUID.fromString(param.getValue().get("user_id")))) != null) {
             return new SimpleStringProperty("Yes");
           } else {
             return new SimpleStringProperty("No");
@@ -127,10 +154,12 @@ public class UserModification {
       });
       table.getColumns().add(adminCol);
 
-      TableColumn<HashMap<String, String>, String> doctorCol = new TableColumn<>("Doctor");
+      TableColumn<HashMap<String, String>, String> doctorCol =
+          new TableColumn<>("Doctor");
       doctorCol.setCellValueFactory(param -> {
         try {
-          if (doctorDao.getDoctorObjectForUser(userDao.queryForId(UUID.fromString(param.getValue().get("user_id")))) != null) {
+          if (doctorDao.getDoctorObjectForUser(userDao.queryForId(
+                  UUID.fromString(param.getValue().get("user_id")))) != null) {
             return new SimpleStringProperty("Yes");
           } else {
             return new SimpleStringProperty("No");
@@ -171,35 +200,49 @@ public class UserModification {
 
       Button btnAddUser = new Button("Add User");
       btnAddUser.setOnAction(e -> {
-        primaryStage.setScene(HMSApp.userRegistrationForm(userDao, patientDao, doctorDao, getScene(goToMainWindow), adminDao, false, goToMainWindow, primaryStage));
+        primaryStage.setScene(HMSApp.userRegistrationForm(
+            userDao, patientDao, doctorDao, getScene(goToMainWindow), adminDao,
+            false, goToMainWindow, primaryStage));
       });
 
       Button btnDeleteUser = new Button("Delete User");
       btnDeleteUser.setOnAction(e -> {
-        HashMap<String, String> selected = table.getSelectionModel().getSelectedItem();
+        HashMap<String, String> selected =
+            table.getSelectionModel().getSelectedItem();
         if (selected == null) {
           errorDialog("No user selected");
           return;
         }
-        try {
-          userDao.deleteById(UUID.fromString(selected.get("user_id")));
-          data.remove(selected);
-        } catch (Exception ex) {
-          System.err.println("Error deleting user:\n" + ex);
-          ex.printStackTrace(System.err);
-          errorDialog("Error deleting user");
-        }
+
+        Alert confirmationAlert =
+            new Alert(Alert.AlertType.CONFIRMATION,
+                      "Are you sure you want to delete this user?",
+                      ButtonType.YES, ButtonType.NO);
+        confirmationAlert.showAndWait()
+            .filter(response -> response == ButtonType.YES)
+            .ifPresent(res -> {
+              try {
+                userDao.deleteById(UUID.fromString(selected.get("user_id")));
+                data.remove(selected);
+              } catch (Exception ex) {
+                System.err.println("Error deleting user:\n" + ex);
+                ex.printStackTrace(System.err);
+                errorDialog("Error deleting user");
+              }
+            });
       });
 
       Button btnMakeAdmin = new Button("Make Admin");
       btnMakeAdmin.setOnAction(e -> {
-        HashMap<String, String> selected = table.getSelectionModel().getSelectedItem();
+        HashMap<String, String> selected =
+            table.getSelectionModel().getSelectedItem();
         if (selected == null) {
           errorDialog("No user selected");
           return;
         }
         try {
-          User user = userDao.queryForId(UUID.fromString(selected.get("user_id")));
+          User user =
+              userDao.queryForId(UUID.fromString(selected.get("user_id")));
           Administrator admin = new Administrator(user);
           adminDao.create(admin);
           data.clear();
@@ -226,7 +269,8 @@ public class UserModification {
 
       Button btnMakeDoctor = new Button("Make Doctor");
       btnMakeDoctor.setOnAction(e -> {
-        HashMap<String, String> selected = table.getSelectionModel().getSelectedItem();
+        HashMap<String, String> selected =
+            table.getSelectionModel().getSelectedItem();
         if (selected == null) {
           errorDialog("No user selected");
           return;
@@ -243,7 +287,8 @@ public class UserModification {
         Button btnContinue = new Button("Continue");
         btnContinue.setOnAction(e1 -> {
           try {
-            User user = userDao.queryForId(UUID.fromString(selected.get("user_id")));
+            User user =
+                userDao.queryForId(UUID.fromString(selected.get("user_id")));
             Doctor doctor = new Doctor(user, departmentField.getText());
             doctorDao.create(doctor);
             data.clear();
@@ -275,65 +320,8 @@ public class UserModification {
         newStage.show();
       });
 
-      root.getChildren().addAll(table, btnRefresh, btnAddUser, btnDeleteUser, btnMakeAdmin, btnMakeDoctor);
-    } else {
-      /*
-      root.getChildren().add(new Label("Error listing users"));
-
-      Button btnRefresh = new Button("Refresh");
-      btnRefresh.setOnAction(e -> {
-        data.clear();
-        try {
-          users = userDao.queryForAll();
-        } catch (Exception ex) {
-          System.err.println("Error listing users:\n" + ex);
-          ex.printStackTrace(System.err);
-        }
-        for (User user : users) {
-          HashMap<String, String> row = new HashMap<>();
-          row.put("user_id", user.getUserId().toString());
-          row.put("username", user.getUsername());
-          row.put("email", user.getEmail());
-          row.put("first_name", user.getFirstName());
-          row.put("middle_name", user.getMiddleName());
-          row.put("last_name", user.getLastName());
-          row.put("password_hash", user.getPasswordHash().toString());
-          row.put("date_of_birth", user.getDateOfBirth().toString());
-          row.put("phone_number", user.getPhoneNumber());
-          data.add(row);
-        }
-      });
-
-      root.getChildren().add(btnRefresh);
-
-      Button btnAddUser = new Button("Add User");
-      btnAddUser.setOnAction(e -> {
-        primaryStage.setScene(userRegistrationForm(userDao, patientDao, doctorDao, userList(userDao, adminDao, doctorDao), adminDao, false));
-      });
-
-      root.getChildren().add(btnAddUser);
-
-      Button btnExit = new Button("Exit");
-      btnExit.setOnAction(e -> primaryStage.close());
-
-      root.getChildren().add(btnExit);
-
-      Button btnGoToMainWindow = new Button("Go to main window");
-      btnGoToMainWindow.setOnAction(e -> goToMainWindow());
-
-      root.getChildren().add(btnGoToMainWindow);
-
-      Button btnMakeAdmin = new Button("Make Admin");
-
-      root.getChildren().add(btnMakeAdmin);
-
-      Button btnMakeDoctor = new Button("Make Doctor");
-
-      root.getChildren().add(btnMakeDoctor);
-
-      Button btnDeleteUser = new Button("Delete User");
-
-     */
+      root.getChildren().addAll(table, btnRefresh, btnAddUser, btnDeleteUser,
+                                btnMakeAdmin, btnMakeDoctor);
     }
 
     Button btnGoToMainWindow = new Button("Go to main window");
