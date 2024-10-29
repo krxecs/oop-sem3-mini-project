@@ -1,4 +1,4 @@
-package com.example.hms.auth;
+package com.example.hms.util.auth;
 
 import com.example.hms.util.crypto.PHCHash;
 import com.example.hms.util.crypto.PasswordHash;
@@ -15,13 +15,13 @@ public class UserDAOImpl extends BaseDaoImpl<User, UUID> implements UserDAO {
   }
 
   @Override
-  public User addUser(String username, char[] password, String email, String firstName, String middleName, String lastName, java.sql.Date dateOfBirth, String phoneNumber) throws Exception {
+  public User addUser(String username, char[] password, String email, String firstName, String middleName, String lastName, java.sql.Date dateOfBirth, String phoneNumber, String bloodGroup) throws Exception {
     User user = getUser(username);
     if (user != null) {
       throw new Exception("User already exists");
     }
     PHCHash passwordHash = new PasswordHash().generateHash(password, PasswordHash.generateSalt());
-    User newUser = new User(UuidCreator.getTimeOrderedEpochPlusN(), username, passwordHash, email, firstName, middleName, lastName, dateOfBirth, phoneNumber);
+    User newUser = new User(UuidCreator.getTimeOrderedEpochPlusN(), username, passwordHash, email, firstName, middleName, lastName, dateOfBirth, phoneNumber, bloodGroup);
     create(newUser);
     return newUser;
   }

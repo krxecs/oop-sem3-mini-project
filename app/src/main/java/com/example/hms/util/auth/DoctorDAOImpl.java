@@ -1,4 +1,4 @@
-package com.example.hms.auth;
+package com.example.hms.util.auth;
 
 import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.stmt.QueryBuilder;
@@ -51,5 +51,19 @@ public class DoctorDAOImpl extends BaseDaoImpl<Doctor, Long> implements DoctorDA
   @Override
   public List<Doctor> getDoctors() throws Exception {
     return queryForAll();
+  }
+
+  @Override
+  public Doctor getDoctorObjectForUser(User user) {
+    QueryBuilder<Doctor, Long> queryBuilder = queryBuilder();
+    Doctor d = null;
+    try {
+      queryBuilder.where().eq("user_id", user.getUserId());
+      d = queryBuilder.queryForFirst();
+    } catch (SQLException e) {
+      throw new RuntimeException("Unable to get Doctor object for user", e);
+    }
+
+    return d;
   }
 }

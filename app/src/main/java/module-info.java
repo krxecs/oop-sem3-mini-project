@@ -8,9 +8,10 @@ module com.example.hms {
   requires java.sql;
 
   exports com.example.hms;
-  exports com.example.hms.auth;
+  exports com.example.hms.util.auth;
   exports com.example.hms.util.crypto;
   
   opens com.example.hms to ormlite.jdbc;
-  opens com.example.hms.auth to ormlite.jdbc;
+  opens com.example.hms.util to ormlite.jdbc;
+  opens com.example.hms.util.auth to ormlite.jdbc;
 }

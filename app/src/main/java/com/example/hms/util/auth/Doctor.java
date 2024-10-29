@@ -1,4 +1,4 @@
-package com.example.hms.auth;
+package com.example.hms.util.auth;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;

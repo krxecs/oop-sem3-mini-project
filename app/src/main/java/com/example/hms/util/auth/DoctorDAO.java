@@ -1,4 +1,4 @@
-package com.example.hms.auth;
+package com.example.hms.util.auth;
 
 import com.j256.ormlite.dao.Dao;
 
@@ -12,4 +12,6 @@ public interface DoctorDAO extends Dao<Doctor, Long> {
   List<Doctor> getDoctorsByDepartment(String department) throws Exception;
   List<Doctor> getDoctorsByUser(User user) throws Exception;
   List<Doctor> getDoctors() throws Exception;
+
+  Doctor getDoctorObjectForUser(User user);
 }

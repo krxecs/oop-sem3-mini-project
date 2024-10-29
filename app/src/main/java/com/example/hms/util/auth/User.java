@@ -1,14 +1,10 @@
-package com.example.hms.auth;
+package com.example.hms.util.auth;
 
 import com.example.hms.util.crypto.PHCHash;
-import com.example.hms.util.crypto.PasswordHash;
-import com.github.f4b6a3.uuid.UuidCreator;
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
-import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.DatabaseTable;
 
-import java.sql.SQLException;
 import java.util.UUID;
 
 @DatabaseTable(tableName = "users", daoClass = UserDAOImpl.class)
@@ -40,9 +36,12 @@ public class User {
   @DatabaseField(columnName = "phone_no", canBeNull = false)
   private String phoneNumber;
 
+  @DatabaseField(columnName = "blood_group", canBeNull = false)
+  private String bloodGroup;
+
   public User() { }
 
-  public User(UUID userId, String username, PHCHash passwordHash, String email, String firstName, String middleName, String lastName, java.sql.Date dateOfBirth, String phoneNumber) {
+  public User(UUID userId, String username, PHCHash passwordHash, String email, String firstName, String middleName, String lastName, java.sql.Date dateOfBirth, String phoneNumber, String bloodGroup) {
     this.userId = userId;
     this.username = username;
     this.passwordHash = passwordHash.getFormattedHash();
@@ -52,6 +51,7 @@ public class User {
     this.lastName = lastName;
     this.dateOfBirth = dateOfBirth;
     this.phoneNumber = phoneNumber;
+    this.bloodGroup = bloodGroup;
   }
 
   public UUID getUserId() { return userId; }
@@ -71,4 +71,6 @@ public class User {
   public java.sql.Date getDateOfBirth() { return dateOfBirth; }
 
   public String getPhoneNumber() { return phoneNumber; }
+
+  public String getBloodGroup() { return bloodGroup; }
 }
