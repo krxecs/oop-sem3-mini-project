@@ -27,11 +27,11 @@ public class UserModification {
   private Stage primaryStage;
 
   void errorDialog(String err) {
-    Dialog<String> dialog = new Dialog<>();
-    dialog.setTitle("Error");
-    dialog.setContentText(err);
-    dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
-    dialog.showAndWait();
+    Alert alert = new Alert(Alert.AlertType.ERROR);
+    alert.setTitle("Error");
+    alert.setHeaderText(null);
+    alert.setContentText(err);
+    alert.showAndWait();
   }
 
   public UserModification(UserDAO userDao, PatientDAO patientDao, DoctorDAO doctorDao, AdministratorDAO adminDao, Stage primaryStage) {
