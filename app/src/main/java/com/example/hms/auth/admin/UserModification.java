@@ -26,7 +26,7 @@ public class UserModification {
   private Stage primaryStage;
 
   void errorDialog(String err) {
-    Alert alert = new Alert(Alert.AlertType.ERROR);
+    Alert alert = new Alert(Alert.AlertType.ERROR, "Error");
     alert.setTitle("Error");
     alert.setHeaderText(null);
     alert.setContentText(err);
@@ -58,6 +58,11 @@ public class UserModification {
     } catch (Exception ex) {
       System.err.println("Error listing users:\n" + ex);
       ex.printStackTrace(System.err);
+      Alert alert = new Alert(Alert.AlertType.ERROR, "Error listing users", ButtonType.OK);
+      alert.setHeaderText(ex.toString());
+      alert.showAndWait()
+          .filter(response -> response == ButtonType.OK)
+          .ifPresent(res -> goToMainWindow.handle(null));
     }
 
     if (success) {
@@ -71,7 +76,6 @@ public class UserModification {
         row.put("first_name", user.getFirstName());
         row.put("middle_name", user.getMiddleName());
         row.put("last_name", user.getLastName());
-        row.put("password_hash", user.getPasswordHash().toString());
         row.put("date_of_birth", user.getDateOfBirth().toString());
         row.put("phone_number", user.getPhoneNumber());
         data.add(row);
@@ -114,13 +118,6 @@ public class UserModification {
       lastNameCol.setCellValueFactory(
           param -> new SimpleStringProperty(param.getValue().get("last_name")));
       table.getColumns().add(lastNameCol);
-
-      TableColumn<HashMap<String, String>, String> passwordHashCol =
-          new TableColumn<>("Password Hash");
-      passwordHashCol.setCellValueFactory(
-          param
-          -> new SimpleStringProperty(param.getValue().get("password_hash")));
-      table.getColumns().add(passwordHashCol);
 
       TableColumn<HashMap<String, String>, String> dateOfBirthCol =
           new TableColumn<>("Date of Birth");

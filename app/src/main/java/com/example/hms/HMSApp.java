@@ -289,7 +289,7 @@ public final class HMSApp extends Application {
         lblStatus.setText("Patient registered successfully");
         onSuccess.handle(e);
       } catch (Exception ex) {
-        lblStatus.setText("Error registering patient");
+        errorDialog("Error registering patient");
         System.err.println("Error registering patient:\n" + ex);
         ex.printStackTrace(System.err);
       }
@@ -402,11 +402,10 @@ public final class HMSApp extends Application {
   }
 
   void errorDialog(String err) {
-    Dialog<String> dialog = new Dialog<>();
-    dialog.setTitle("Error");
-    dialog.setContentText(err);
-    dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
-    dialog.showAndWait();
+    Alert alert = new Alert(Alert.AlertType.ERROR, "Error");
+    alert.setHeaderText(null);
+    alert.setContentText(err);
+    alert.showAndWait();
   }
 
   Scene firstUseForm(UserDAO userDAO, PatientDAO patientDAO, DoctorDAO doctorDAO, AdministratorDAO adminDAO) {
