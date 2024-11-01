@@ -2,6 +2,7 @@ package com.example.hms;
 
 import java.util.*;
 
+import com.example.hms.auth.ChangeUserSettings;
 import com.example.hms.auth.ListAppointments;
 import com.example.hms.auth.LoginPage;
 import com.example.hms.auth.admin.UserModification;
@@ -133,7 +134,17 @@ public final class HMSApp extends Application {
     return new Scene(root, 300, 200);
   }
 
-  void patientAppointmentForm(PatientDAO patientDAO, PatientAppointmentDAO paDAO, DoctorDAO doctorDAO, User user, EventHandler<ActionEvent> goToMainWindow, EventHandler<ActionEvent> onSuccess) {
+  void goToPatientAppointmentForm(UserDAO userDAO, PatientDAO patientDAO, PatientAppointmentDAO paDAO, DoctorDAO doctorDAO, RunOnChange<User> user, EventHandler<ActionEvent> goToMainWindow, EventHandler<ActionEvent> onSuccess) {
+    Scene sceneForm = patientAppointmentForm(userDAO, patientDAO, paDAO, doctorDAO, user, goToMainWindow, onSuccess);
+
+    Patient patient = patientDAO.getPatientObjectForUser(user.get());
+    if (patient == null) {
+      Scene patientRegistrationScene = patientRegistrationForm(userDAO, patientDAO, user, ev -> primaryStage.setScene(sceneForm));
+      patient = patientDAO.getPatientObjectForUser(user.get());
+      this.primaryStage.setScene(patientRegistrationScene);
+    }
+  }
+  Scene patientAppointmentForm(UserDAO userDAO, PatientDAO patientDAO, PatientAppointmentDAO paDAO, DoctorDAO doctorDAO, RunOnChange<User> user, EventHandler<ActionEvent> goToMainWindow, EventHandler<ActionEvent> onSuccess) {
     VBox root = new VBox(10);
     root.setAlignment(Pos.CENTER);
 
@@ -194,8 +205,11 @@ public final class HMSApp extends Application {
     btnRegister.setOnAction(e -> {
       Date dateTimeOfVisit = Date.from(dateTimeOfVisitField.getValue().atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
       try {
+        Alert infoDoctor = new Alert(Alert.AlertType.INFORMATION);
+        infoDoctor.setContentText(comboDoctor.getValue().getUser().getUsername());
+        infoDoctor.showAndWait();
         paDAO.addAppointmentForPatient(
-          patientDAO.getPatientObjectForUser(user),
+          patientDAO.getPatientObjectForUser(user.get()),
           dateTimeOfVisit,
           comboDoctor.getValue(),
           reasonForVisitField.getText(),
@@ -212,17 +226,8 @@ public final class HMSApp extends Application {
     Button btnGoToMainWindow = new Button("Go to main window");
     btnGoToMainWindow.setOnAction(e -> goToMainWindow());
 
-    Scene rootScene = new Scene(root, 300, 200);
-
-    if (patientDAO.getPatientObjectForUser(user) != null) {
-      root.getChildren().addAll(gp, btnRegister, btnGoToMainWindow, lblStatus);
-    } else {
-      Scene patientRegistrationScene = patientRegistrationForm(patientDAO, user, e -> primaryStage.setScene(rootScene));
-      this.primaryStage.setScene(patientRegistrationScene);
-    }
-
     root.getChildren().addAll(gp, btnRegister, btnGoToMainWindow, lblStatus);
-    this.primaryStage.setScene(rootScene);
+    return new Scene(root, 300, 200);
   }
 
   Scene doctorRegistrationForm(DoctorDAO doctorDAO, User user, EventHandler<ActionEvent> onSuccess) {
@@ -247,7 +252,7 @@ public final class HMSApp extends Application {
         lblStatus.setText("Doctor registered successfully");
         onSuccess.handle(e);
       } catch (Exception ex) {
-        lblStatus.setText("Error registering doctor");
+        errorDialog("Error registering doctor");
         System.err.println("Error registering doctor:\n" + ex);
         ex.printStackTrace(System.err);
       }
@@ -262,7 +267,7 @@ public final class HMSApp extends Application {
 
   void goToMainWindow() { primaryStage.setScene(this.primaryScene); }
 
-  Scene patientRegistrationForm(PatientDAO patientDAO, User user, EventHandler<ActionEvent> onSuccess) {
+  Scene patientRegistrationForm(UserDAO userDAO, PatientDAO patientDAO, RunOnChange<User> user, EventHandler<ActionEvent> onSuccess) {
     VBox root = new VBox(10);
     root.setAlignment(Pos.CENTER);
 
@@ -285,7 +290,7 @@ public final class HMSApp extends Application {
 
     btnRegister.setOnAction(e -> {
       try {
-        patientDAO.addPatientForUser(user, smokingAndAlcoholStatusField.getText(), additionalNotesField.getText());
+        patientDAO.addPatientForUser(user.get(), smokingAndAlcoholStatusField.getText(), additionalNotesField.getText());
         lblStatus.setText("Patient registered successfully");
         onSuccess.handle(e);
       } catch (Exception ex) {
@@ -316,7 +321,7 @@ public final class HMSApp extends Application {
 
     Button btnPatientAppointment = new Button("Patient appointment");
     btnPatientAppointment.setOnAction(e -> {
-      patientAppointmentForm(patientDAO, paDAO, doctorDAO, loggedInUser.get(), e1 -> goToMainWindow(), e1 -> goToMainWindow());
+      goToPatientAppointmentForm(userDAO, patientDAO, paDAO, doctorDAO, loggedInUser, e1 -> goToMainWindow(), e1 -> goToMainWindow());
     });
 
     Button btnUserMod = new Button("User modification");
@@ -339,11 +344,19 @@ public final class HMSApp extends Application {
     root.setAlignment(Pos.CENTER);
 
     Label lblUserStatus = new Label("User logged in: " + loggedInUser.get().getUsername());
+    root.getChildren().add(lblUserStatus);
 
     Button btnPatientAppointment = new Button("Patient appointment");
     btnPatientAppointment.setOnAction(e -> {
-      patientAppointmentForm(patientDAO, paDAO, doctorDAO, loggedInUser.get(), e1 -> goToMainWindow(), e1 -> goToMainWindow());
+      goToPatientAppointmentForm(userDAO, patientDAO, paDAO, doctorDAO, loggedInUser, e1 -> goToMainWindow(), e1 -> goToMainWindow());
     });
+    root.getChildren().add(btnPatientAppointment);
+
+    Button btnChangeUserSettings = new Button("Change user settings");
+    btnChangeUserSettings.setOnAction(e -> {
+      primaryStage.setScene(new ChangeUserSettings(loggedInUser, ev -> goToMainWindow()).getScene(userDAO, doctorDAO, patientDAO));
+    });
+    root.getChildren().add(btnChangeUserSettings);
 
     if (doctorDAO.getDoctorObjectForUser(loggedInUser.get()) != null) {
       Button btnListPatients = new Button("List patients");
@@ -365,8 +378,8 @@ public final class HMSApp extends Application {
       loggedInUser.set(null);
       primaryStage.setScene(this.primaryScene);
     });
+    root.getChildren().add(btnLogout);
 
-    root.getChildren().addAll(lblUserStatus, btnPatientAppointment, btnLogout);
     return new Scene(root, 300, 200);
   }
 
@@ -379,7 +392,7 @@ public final class HMSApp extends Application {
     Button btnLogin = new Button("Login");
     btnLogin.setOnAction(e -> {
       LoginPage lp = new LoginPage(user);
-      primaryStage.setScene(lp.getScene(userDAO, event -> {
+      primaryStage.setScene(lp.getScene(userDAO, ev -> goToMainWindow(), user, event -> {
         try {
           System.out.println("User logged in: " + user.get().getUsername());
           if (adminDAO.getAdministratorObjectForUser(user.get()) != null) {
@@ -391,7 +404,7 @@ public final class HMSApp extends Application {
           System.err.println("Error logging in admin:\n" + ex);
           ex.printStackTrace(System.err);
         }
-      }, user));
+      }));
     });
 
     Button btnRegister = new Button("Register");
@@ -441,64 +454,6 @@ public final class HMSApp extends Application {
       TableUtils.createTableIfNotExists(connectionSource, PatientAppointment.class);
       TableUtils.createTableIfNotExists(connectionSource, Administrator.class);
 
-      //Label lblUserStatus = new Label("User not logged in");
-
-      //loggedInUser = new RunOnChange<>(null, () -> {
-      //  if (loggedInUser.get() != null) {
-      //    lblUserStatus.setText("User logged in: " + loggedInUser.get().getUsername());
-      //  } else {
-      //    lblUserStatus.setText("User not logged in");
-      //  }
-      //});
-
-      //Button btnLogin = new Button("Login");
-      //btnLogin.setOnAction(e -> {
-      //  LoginPage lp = new LoginPage(loggedInUser);
-      //  primaryStage.setScene(lp.getScene(userDao, event -> primaryStage.setScene(this.primaryScene), loggedInUser));
-      //});
-
-      //Button btnPatientRegister = new Button("User registration");
-      //btnPatientRegister.setOnAction(e -> primaryStage.setScene(userRegistrationForm(userDao, patientDao, doctorDao, null)));
-
-      ////Button btnDoctorRegister = new Button("Doctor registration");
-      ////btnDoctorRegister.setOnAction(e -> primaryStage.setScene(userRegistrationForm(userDao, patientDao, doctorDao));
-
-      //Button btnListUsers = new Button("List users");
-      //btnListUsers.setOnAction(e -> {
-      //  if (loggedInUser.get() == null) {
-      //    errorDialog("You must be logged in to list users.");
-      //    return;
-      //  }
-      //  primaryStage.setScene(userList(userDao));
-      //});
-
-      //Button btnListPatients = new Button("List patients");
-      //btnListPatients.setOnAction(e -> {
-      //  Doctor d;
-      //  if (loggedInUser.get() == null) {
-      //    Dialog<String> dialog = new Dialog<>();
-      //    dialog.setTitle("Error");
-      //    dialog.setContentText("You must be logged in to list patients");
-      //    dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
-      //    dialog.showAndWait();
-      //    return;
-      //  }
-
-      //  try {
-      //    d = doctorDao.getDoctorObjectForUser(loggedInUser.get());
-      //  } catch (Exception ex) {
-      //    errorDialog("You must be a doctor to list patients");
-      //    return;
-      //  }
-      //  primaryStage.setScene(ListAppointments.getScene(patientDao, patientAppointmentDao, d, e1 -> goToMainWindow()));
-      //});
-
-      //Button btnExit = new Button("Exit");
-      //btnExit.setOnAction(e -> primaryStage.close());
-
-      //root.getChildren().addAll(lblUserStatus, btnLogin, btnPatientRegister, /*btnDoctorRegister,*/ btnListUsers, btnListPatients, btnExit);
-
-      //this.primaryScene = new Scene(root, 700, 700);
       loggedInUser = new RunOnChange<>(null, () -> {
         if (loggedInUser.get() != null) {
           if (adminDAO.getAdministratorObjectForUser(loggedInUser.get()) != null) {

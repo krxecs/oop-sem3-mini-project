@@ -8,6 +8,7 @@ module com.example.hms {
   requires java.sql;
 
   exports com.example.hms;
+  exports com.example.hms.util;
   exports com.example.hms.util.auth;
   exports com.example.hms.util.crypto;
   

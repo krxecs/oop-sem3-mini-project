@@ -197,9 +197,12 @@ public class UserModification {
 
       Button btnAddUser = new Button("Add User");
       btnAddUser.setOnAction(e -> {
-        primaryStage.setScene(HMSApp.userRegistrationForm(
+        Stage stage = new Stage();
+        stage.setTitle("Add User");
+        stage.setScene(HMSApp.userRegistrationForm(
             userDao, patientDao, doctorDao, getScene(goToMainWindow), adminDao,
-            false, goToMainWindow, primaryStage));
+            true, goToMainWindow, primaryStage));
+        stage.show();
       });
 
       Button btnDeleteUser = new Button("Delete User");

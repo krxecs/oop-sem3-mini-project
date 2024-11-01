@@ -14,12 +14,12 @@ public class PatientAppointmentDAOImpl extends BaseDaoImpl<PatientAppointment, L
   }
   @Override
   public void addAppointmentForPatient(Patient patient, Date dateTimeOfAppointment, Doctor doctor, String reasonForVisit, String diagnosis) throws Exception {
-    PatientAppointment appointment = new PatientAppointment(patient, dateTimeOfAppointment, reasonForVisit, diagnosis);
+    PatientAppointment appointment = new PatientAppointment(patient, doctor, dateTimeOfAppointment, reasonForVisit, diagnosis);
     create(appointment);
   }
 
   @Override
-  public void cancelAppointment(long appointmentId) throws Exception {
+  public void cancelOrCompletedAppointment(long appointmentId) throws Exception {
     deleteById(appointmentId);
   }
 }

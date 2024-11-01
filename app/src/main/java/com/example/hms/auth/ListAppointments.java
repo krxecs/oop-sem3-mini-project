@@ -24,99 +24,77 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ListAppointments {
-    public static Scene getScene(PatientDAO patientDAO, Dao<PatientAppointment, Long> patientAppointmentDAO, Doctor doctor, EventHandler<ActionEvent> goToMainWindow) {
-    VBox root = new VBox(10);
+  public static Scene getScene(PatientDAO patientDAO, Dao<PatientAppointment, Long> patientAppointmentDAO, Doctor doctor, EventHandler<ActionEvent> goToMainWindow) {
+    VBox root = new VBox();
     root.setAlignment(Pos.CENTER);
+    root.setSpacing(10);
+
+    Label label = new Label("Appointments");
+    root.getChildren().add(label);
 
     TableView<HashMap<String, String>> table = new TableView<>();
-    table.setEditable(false);
-
-    Label lblDoctor = new Label("Doctor: " + doctor.getUser().getFirstName() + " " + doctor.getUser().getLastName());
-
-    List<PatientAppointment> patients = new LinkedList<>();
-    boolean success = false;
+    ObservableList<HashMap<String, String>> data = FXCollections.observableArrayList();
+    var ref = new Object() {
+      List<PatientAppointment> appointments = new LinkedList<>();
+    };
     try {
-      patients = patientAppointmentDAO.queryForEq("doctor_id", doctor.getDoctorId());
-      success = true;
-    } catch (Exception ex) {
-      System.err.println("Error listing patients:\n" + ex);
-      ex.printStackTrace(System.err);
+      ref.appointments = patientAppointmentDAO.queryForEq("doctor_id", doctor.getDoctorId());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    for (PatientAppointment appointment : ref.appointments) {
+      HashMap<String, String> row = new HashMap<>();
+      row.put("Patient Username", appointment.getPatient().getUser().getUsername());
+      row.put("Patient Name", appointment.getPatient().getUser().getFirstName() + " " + appointment.getPatient().getUser().getLastName());
+      row.put("Date and Time", appointment.getDateTimeOfAppointment().toString());
+      row.put("Reason for Visit", appointment.getReasonForVisit());
+      row.put("Diagnosis", appointment.getDiagnosis());
+      data.add(row);
     }
 
-    if (success) {
-      ObservableList<HashMap<String, String>> data = FXCollections.observableArrayList();
-      for (PatientAppointment pa : patients) {
-        HashMap<String, String> row = new HashMap<>();
-        row.put("patient_id", Long.toString(pa.getPatient().getPatientId()));
-        row.put("user_id", pa.getPatient().getUser().getUserId().toString());
-        row.put("first_name", pa.getPatient().getUser().getFirstName());
-        row.put("last_name", pa.getPatient().getUser().getLastName());
-        row.put("blood_group", pa.getPatient().getUser().getBloodGroup());
-        row.put("date_time_of_appointment", pa.getDateTimeOfAppointment().toString());
-        row.put("reason_for_visit", pa.getReasonForVisit());
-        row.put("diagnosis", pa.getDiagnosis());
-        row.put("smoking_and_alcohol_status", pa.getPatient().getSmokingAndAlcoholStatus());
-        row.put("additional_notes", pa.getPatient().getAdditionalNotes());
+    TableColumn<HashMap<String, String>, String> patientUsernameColumn = new TableColumn<>("Patient Username");
+    patientUsernameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().get("Patient Username")));
+    table.getColumns().add(patientUsernameColumn);
 
-        System.out.println(pa.getDateTimeOfAppointment().toString());
-        data.add(row);
+    TableColumn<HashMap<String, String>, String> patientColumn = new TableColumn<>("Patient Name");
+    patientColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().get("Patient Name")));
+    table.getColumns().add(patientColumn);
+
+    TableColumn<HashMap<String, String>, String> dateTimeColumn = new TableColumn<>("Date and Time");
+    dateTimeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().get("Date and Time")));
+    table.getColumns().add(dateTimeColumn);
+
+    TableColumn<HashMap<String, String>, String> reasonColumn = new TableColumn<>("Reason for Visit");
+    reasonColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().get("Reason for Visit")));
+    table.getColumns().add(reasonColumn);
+
+    TableColumn<HashMap<String, String>, String> diagnosisColumn = new TableColumn<>("Diagnosis");
+    diagnosisColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().get("Diagnosis")));
+    table.getColumns().add(diagnosisColumn);
+
+    table.setItems(data);
+
+    Button btnDischarge = new Button("Discharge");
+    btnDischarge.setOnAction(e -> {
+      HashMap<String, String> selectedRow = table.getSelectionModel().getSelectedItem();
+      if (selectedRow == null) {
+        return;
       }
+      String patientUsername = selectedRow.get("Patient Username");
+      PatientAppointment appointment = ref.appointments.stream().filter(a -> a.getPatient().getUser().getUsername().equals(patientUsername)).findFirst().get();
+      try {
+        patientAppointmentDAO.delete(appointment);
+        data.remove(selectedRow);
+      } catch (Exception ex) {
+        ex.printStackTrace();
+      }
+    });
 
-      //for (Field colName : patientDAO.getTableInfo().getDataClass().getDeclaredFields()) {
-      //  TableColumn<HashMap<String, String>, String> col = new TableColumn<>(colName.getName());
-      //  col.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get(colName.getName())));
-      //  table.getColumns().add(col);
-      //  System.out.println(colName.getName());
-      //}
+    Button btnBack = new Button("Back");
+    btnBack.setOnAction(goToMainWindow);
 
-      TableColumn<HashMap<String, String>, String> patientIdCol = new TableColumn<>("Patient ID");
-      patientIdCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("patient_id")));
-      table.getColumns().add(patientIdCol);
+    root.getChildren().addAll(table, btnDischarge, btnBack);
 
-      TableColumn<HashMap<String, String>, String> userIdCol = new TableColumn<>("User ID");
-      userIdCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("user_id")));
-      table.getColumns().add(userIdCol);
-
-      TableColumn<HashMap<String, String>, String> firstNameCol = new TableColumn<>("First Name");
-      firstNameCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("first_name")));
-      table.getColumns().add(firstNameCol);
-
-      TableColumn<HashMap<String, String>, String> lastNameCol = new TableColumn<>("Last Name");
-      lastNameCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("last_name")));
-      table.getColumns().add(lastNameCol);
-
-      TableColumn<HashMap<String, String>, String> bloodGroupCol = new TableColumn<>("Blood Group");
-      bloodGroupCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("blood_group")));
-      table.getColumns().add(bloodGroupCol);
-
-      TableColumn<HashMap<String, String>, String> dateTimeOfAppointmentCol = new TableColumn<>("Date and Time of Appointment");
-      dateTimeOfAppointmentCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("date_time_of_appointment")));
-      table.getColumns().add(dateTimeOfAppointmentCol);
-
-      TableColumn<HashMap<String, String>, String> reasonForVisitCol = new TableColumn<>("Reason for Visit");
-      reasonForVisitCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("reason_for_visit")));
-      table.getColumns().add(reasonForVisitCol);
-
-      TableColumn<HashMap<String, String>, String> diagnosisCol = new TableColumn<>("Diagnosis");
-      diagnosisCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("diagnosis")));
-      table.getColumns().add(diagnosisCol);
-
-      TableColumn<HashMap<String, String>, String> smokingAndAlcoholStatusCol = new TableColumn<>("Smoking and Alcohol Status");
-      smokingAndAlcoholStatusCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("smoking_and_alcohol_status")));
-      table.getColumns().add(smokingAndAlcoholStatusCol);
-
-      TableColumn<HashMap<String, String>, String> additionalNotesCol = new TableColumn<>("Additional Notes");
-      additionalNotesCol.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("additional_notes")));
-      table.getColumns().add(additionalNotesCol);
-
-      table.setItems(data);
-    }
-
-    Button btnGoToMainWindow = new Button("Go to main window");
-    btnGoToMainWindow.setOnAction(goToMainWindow);
-
-    Scene scene = new Scene(root, 300, 200);
-    root.getChildren().addAll(lblDoctor, table, btnGoToMainWindow);
-    return scene;
+    return new Scene(root, 800, 600);
   }
 }

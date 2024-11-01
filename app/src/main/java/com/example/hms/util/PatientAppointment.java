@@ -18,7 +18,7 @@ public class PatientAppointment {
   @DatabaseField(columnName = "date_time_of_appointment", canBeNull = false)
   private Date dateTimeOfAppointment;
 
-  @DatabaseField(columnName = "doctor", foreign = true, foreignAutoRefresh = true)
+  @DatabaseField(columnName = "doctor_id", foreign = true, foreignAutoRefresh = true)
   private Doctor doctor;
 
   @DatabaseField(columnName = "reason_for_visit")
@@ -29,8 +29,9 @@ public class PatientAppointment {
 
   public PatientAppointment() {}
 
-  public PatientAppointment(Patient patient, Date dateTimeOfAppointment, String reasonForVisit, String diagnosis) {
+  public PatientAppointment(Patient patient, Doctor doctor, Date dateTimeOfAppointment, String reasonForVisit, String diagnosis) {
     this.patient = patient;
+    this.doctor = doctor;
     this.dateTimeOfAppointment = dateTimeOfAppointment;
     this.reasonForVisit = reasonForVisit;
     this.diagnosis = diagnosis;
@@ -39,6 +40,8 @@ public class PatientAppointment {
   public long getId() { return id; }
 
   public Patient getPatient() { return patient; }
+
+  public Doctor getDoctor() { return doctor; }
 
   public Date getDateTimeOfAppointment() { return dateTimeOfAppointment; }
 

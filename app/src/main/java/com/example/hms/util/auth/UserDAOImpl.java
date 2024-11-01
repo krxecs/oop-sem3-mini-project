@@ -42,4 +42,14 @@ public class UserDAOImpl extends BaseDaoImpl<User, UUID> implements UserDAO {
     }
     return user;
   }
+
+  @Override
+  public void changePassword(User user, char[] oldPassword, char[] newPassword) throws Exception {
+    if (!PasswordHash.verifyPassword(oldPassword, user.getPasswordHash())) {
+      throw new Exception("Invalid old password");
+    }
+    PHCHash passwordHash = new PasswordHash().generateHash(newPassword, PasswordHash.generateSalt());
+    user.setPasswordHash(passwordHash);
+    update(user);
+  }
 }

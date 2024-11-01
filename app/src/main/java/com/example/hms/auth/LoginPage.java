@@ -19,7 +19,7 @@ public class LoginPage {
 
   public LoginPage(RunOnChange<User> loggedInUser) { this.loggedInUser = loggedInUser; }
 
-  public Scene getScene(UserDAO userDao, EventHandler<ActionEvent> goToMainWindow, RunOnChange<User> loggedInUser) {
+  public Scene getScene(UserDAO userDao, EventHandler<ActionEvent> goToMainWindow, RunOnChange<User> loggedInUser, EventHandler<ActionEvent> onSuccess) {
     VBox root = new VBox(10);
     root.setAlignment(Pos.CENTER);
 
@@ -54,6 +54,7 @@ public class LoginPage {
         System.out.println("Authenticated user: " + user);
         lblStatus.setText("Authenticated user successfully");
         loggedInUser.set(user);
+        onSuccess.handle(e);
       } catch (Exception ex) {
         lblStatus.setText("Invalid username or password");
         System.err.println("Error logging in:\n" + ex);

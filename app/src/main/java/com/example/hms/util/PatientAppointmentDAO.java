@@ -8,5 +8,5 @@ import java.util.Date;
 
 public interface PatientAppointmentDAO extends Dao<PatientAppointment, Long> {
   void addAppointmentForPatient(Patient patient, Date dateTimeOfAppointment, Doctor doctor, String reasonForVisit, String diagnosis) throws Exception;
-  void cancelAppointment(long appointmentId) throws Exception;
+  void cancelOrCompletedAppointment(long appointmentId) throws Exception;
 }
