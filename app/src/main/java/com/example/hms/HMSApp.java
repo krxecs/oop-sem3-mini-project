@@ -1,9 +1,14 @@
 package com.example.hms;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import com.example.hms.auth.ChangeUserSettings;
-import com.example.hms.auth.ListAppointments;
+import com.example.hms.auth.ListAppointmentsForDoctor;
+import com.example.hms.auth.ListAppointmentsForPatient;
 import com.example.hms.auth.LoginPage;
 import com.example.hms.auth.admin.UserModification;
 import com.example.hms.util.PatientAppointment;
@@ -142,7 +147,9 @@ public final class HMSApp extends Application {
       Scene patientRegistrationScene = patientRegistrationForm(userDAO, patientDAO, user, ev -> primaryStage.setScene(sceneForm));
       patient = patientDAO.getPatientObjectForUser(user.get());
       this.primaryStage.setScene(patientRegistrationScene);
+      return;
     }
+    this.primaryStage.setScene(sceneForm);
   }
   Scene patientAppointmentForm(UserDAO userDAO, PatientDAO patientDAO, PatientAppointmentDAO paDAO, DoctorDAO doctorDAO, RunOnChange<User> user, EventHandler<ActionEvent> goToMainWindow, EventHandler<ActionEvent> onSuccess) {
     VBox root = new VBox(10);
@@ -183,10 +190,16 @@ public final class HMSApp extends Application {
     gp.add(doctorLabel, 0, 0);
     gp.add(comboDoctor, 1, 0);
 
-    Label dateTimeOfVisitLabel = new Label("Date and Time of Visit: ");
-    DatePicker dateTimeOfVisitField = new DatePicker();
-    gp.add(dateTimeOfVisitLabel, 0, 1);
-    gp.add(dateTimeOfVisitField, 1, 1);
+    Label dateOfVisitLabel = new Label("Date of Visit: ");
+    DatePicker dateOfVisitField = new DatePicker();
+    gp.add(dateOfVisitLabel, 0, 1);
+    gp.add(dateOfVisitField, 1, 1);
+
+    Label timeOfVisitLabel = new Label("Time of Visit: ");
+    ComboBox<String> timeOfVisitField = new ComboBox<>();
+    timeOfVisitField.getItems().addAll("9:00 am", "10:00 am", "11:00 am", "12:00 pm", "1:00 pm", "2:00 pm", "3:00 pm", "4:00 pm", "5:00 pm");
+    gp.add(timeOfVisitLabel, 0, 2);
+    gp.add(timeOfVisitField, 1, 2);
 
     Label reasonForVisitLabel = new Label("Reason for Visit: ");
     TextField reasonForVisitField = new TextField();
@@ -203,14 +216,15 @@ public final class HMSApp extends Application {
     Label lblStatus = new Label();
 
     btnRegister.setOnAction(e -> {
-      Date dateTimeOfVisit = Date.from(dateTimeOfVisitField.getValue().atStartOfDay().toInstant(java.time.ZoneOffset.UTC));
+      LocalDate dateOfVisit = dateOfVisitField.getValue();
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mm a");
+      LocalTime timeOfVisit = LocalTime.parse(timeOfVisitField.getValue(), formatter);
+      LocalDateTime dateTimeOfVisit = LocalDateTime.of(dateOfVisit, timeOfVisit);
+      Date dateTimeOfVisit_Date = Date.from(dateTimeOfVisit.toInstant(java.time.ZoneOffset.UTC));
       try {
-        Alert infoDoctor = new Alert(Alert.AlertType.INFORMATION);
-        infoDoctor.setContentText(comboDoctor.getValue().getUser().getUsername());
-        infoDoctor.showAndWait();
         paDAO.addAppointmentForPatient(
           patientDAO.getPatientObjectForUser(user.get()),
-          dateTimeOfVisit,
+          dateTimeOfVisit_Date,
           comboDoctor.getValue(),
           reasonForVisitField.getText(),
           diagnosisField.getText()
@@ -352,23 +366,23 @@ public final class HMSApp extends Application {
     });
     root.getChildren().add(btnPatientAppointment);
 
+    Button btnListYourAppointments = new Button("List your appointments");
+    btnListYourAppointments.setOnAction(e -> {
+      primaryStage.setScene(new ListAppointmentsForPatient().getScene(patientDAO, paDAO, loggedInUser, ev -> goToMainWindow()));
+    });
+    root.getChildren().add(btnListYourAppointments);
+
     Button btnChangeUserSettings = new Button("Change user settings");
     btnChangeUserSettings.setOnAction(e -> {
       primaryStage.setScene(new ChangeUserSettings(loggedInUser, ev -> goToMainWindow()).getScene(userDAO, doctorDAO, patientDAO));
     });
     root.getChildren().add(btnChangeUserSettings);
 
-    if (doctorDAO.getDoctorObjectForUser(loggedInUser.get()) != null) {
+    Doctor d = doctorDAO.getDoctorObjectForUser(loggedInUser.get());
+    if (d != null) {
       Button btnListPatients = new Button("List patients");
       btnListPatients.setOnAction(e -> {
-        Doctor d;
-        try {
-          d = doctorDAO.getDoctorObjectForUser(loggedInUser.get());
-        } catch (Exception ex) {
-          errorDialog("You must be a doctor to list patients");
-          return;
-        }
-        primaryStage.setScene(ListAppointments.getScene(patientDAO, paDAO, d, e1 -> goToMainWindow()));
+        primaryStage.setScene(ListAppointmentsForDoctor.getScene(patientDAO, paDAO, d, e1 -> goToMainWindow()));
       });
       root.getChildren().add(btnListPatients);
     }

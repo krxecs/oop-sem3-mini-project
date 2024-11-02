@@ -19,11 +19,15 @@ import com.example.hms.util.auth.PatientDAO;
 import com.example.hms.util.PatientAppointment;
 import com.example.hms.util.auth.Doctor;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ListAppointments {
+public class ListAppointmentsForDoctor {
   public static Scene getScene(PatientDAO patientDAO, Dao<PatientAppointment, Long> patientAppointmentDAO, Doctor doctor, EventHandler<ActionEvent> goToMainWindow) {
     VBox root = new VBox();
     root.setAlignment(Pos.CENTER);
@@ -43,10 +47,11 @@ public class ListAppointments {
       e.printStackTrace();
     }
     for (PatientAppointment appointment : ref.appointments) {
+      DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
       HashMap<String, String> row = new HashMap<>();
       row.put("Patient Username", appointment.getPatient().getUser().getUsername());
       row.put("Patient Name", appointment.getPatient().getUser().getFirstName() + " " + appointment.getPatient().getUser().getLastName());
-      row.put("Date and Time", appointment.getDateTimeOfAppointment().toString());
+      row.put("Date and Time", formatter.format(LocalDateTime.ofInstant(appointment.getDateTimeOfAppointment().toInstant(), ZoneId.systemDefault())));
       row.put("Reason for Visit", appointment.getReasonForVisit());
       row.put("Diagnosis", appointment.getDiagnosis());
       data.add(row);
