@@ -201,7 +201,7 @@ public class UserModification {
         stage.setTitle("Add User");
         stage.setScene(HMSApp.userRegistrationForm(
             userDao, patientDao, doctorDao, getScene(goToMainWindow), adminDao,
-            true, goToMainWindow, primaryStage));
+            false, goToMainWindow, primaryStage));
         stage.show();
       });
 
