@@ -197,7 +197,7 @@ public final class HMSApp extends Application {
 
     Label timeOfVisitLabel = new Label("Time of Visit: ");
     ComboBox<String> timeOfVisitField = new ComboBox<>();
-    timeOfVisitField.getItems().addAll("9:00 am", "10:00 am", "11:00 am", "12:00 pm", "1:00 pm", "2:00 pm", "3:00 pm", "4:00 pm", "5:00 pm");
+    timeOfVisitField.getItems().addAll("9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM");
     gp.add(timeOfVisitLabel, 0, 2);
     gp.add(timeOfVisitField, 1, 2);
 
@@ -217,7 +217,7 @@ public final class HMSApp extends Application {
 
     btnRegister.setOnAction(e -> {
       LocalDate dateOfVisit = dateOfVisitField.getValue();
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mm a");
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mm a", Locale.US);
       LocalTime timeOfVisit = LocalTime.parse(timeOfVisitField.getValue(), formatter);
       LocalDateTime dateTimeOfVisit = LocalDateTime.of(dateOfVisit, timeOfVisit);
       Date dateTimeOfVisit_Date = Date.from(dateTimeOfVisit.toInstant(java.time.ZoneOffset.UTC));
